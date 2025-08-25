@@ -3,20 +3,21 @@ from PIL import Image
 import io
 from models.detector import YOLOObjectDetection  # import your detector function
 from models.ROI_Points import get_roi_points  # import your ROI points function
-from segment_anything_2.segmentation_mask import get_segmentation_mask  # import your segmentation function
+from models.segmentation_mask import segmentation_mask
+from models.image_generation import image_generation
 import numpy as np
 import cv2
 from PIL import Image as PILImage
-import sys
-import os
 
-# sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'segment-anything-2')))
-# from segmentation_mask import get_segmentation_mask  # import your segmentation function 
 
 
 def main():
     st.title("DressifyAI")
     st.write("Welcome to DressifyAI! Upload an image to get started.")
+    
+    # Prompt input
+    prompt = st.text_input("Enter your prompt:", value="")
+    st.session_state['prompt'] = prompt
 
     uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
     if uploaded_file is not None:
@@ -29,7 +30,7 @@ def main():
         if 'pil_image' not in st.session_state:
             st.session_state['pil_image'] = pil_image
 
-        if st.button("Run Detection") or ('detected_img' in st.session_state and 'box' in st.session_state):
+        if prompt and (st.button("Run Detection") or ('detected_img' in st.session_state and 'box' in st.session_state)):
             if 'detected_img' not in st.session_state or 'box' not in st.session_state:
                 detected_img, box = YOLOObjectDetection(st.session_state['pil_image'])
                 st.session_state['detected_img'] = detected_img
@@ -53,8 +54,22 @@ def main():
                 st.image(roi_image, caption="Image with ROI Points", use_column_width=True)
 
                 if roi_points is not None:
-                    segmentation_mask = get_segmentation_mask(st.session_state['pil_image'], roi_points)
-                    st.image(segmentation_mask, caption="Segmentation Mask", use_column_width=True)
+                    if st.button("Show Segmentation Mask"):
+                        # Call segmentation_mask with the PIL image and ROI points
+                        mask = segmentation_mask(st.session_state['pil_image'], roi_points)
+                        st.image(mask, caption="Segmentation Mask", use_column_width=True)
+                        st.session_state['segmentation_mask'] = mask
+
+                    # If segmentation mask is available, show Generate Image button
+                    if 'segmentation_mask' in st.session_state:
+                        if st.button("Generate Image"):
+                            # Call image_generation with image, mask, and prompt
+                            generated_image = image_generation(
+                                st.session_state['pil_image'],
+                                st.session_state['segmentation_mask'],
+                                st.session_state['prompt']
+                            )
+                            st.image(generated_image, caption="Generated Image", use_column_width=True)
 
 if __name__ == "__main__":
     main()

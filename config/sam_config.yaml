@@ -1,4 +1,0 @@
-# SAM model configuration
-# Replace with your actual SAM model configs
-model_type: "vit_h"
-checkpoint_path: "path/to/checkpoint"
