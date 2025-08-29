@@ -16,7 +16,7 @@ def image_generation(image, masked_image, prompt):
     "image": pil_image_to_base64(image),  # Or use image_file_to_base64("IMAGE_PATH")
     "mask": pil_image_to_base64(Image.fromarray(masked_image)),  # Or use image_file_to_base64("IMAGE_PATH")
     "prompt": prompt,
-    "negative_prompt": "bad quality, painting, blur",
+    "negative_prompt": "blur",
     "samples": 1,
     "scheduler": "DDIM",
     "num_inference_steps": 25,
